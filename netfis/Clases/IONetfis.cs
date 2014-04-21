@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace netfis.Clases
 {
+    //la primera app
     class IONetfis{
 
         //Lee datos de un archivo de texto
