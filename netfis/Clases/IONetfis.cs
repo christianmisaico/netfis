@@ -8,6 +8,7 @@ using System.Data
 
 namespace netfis.Clases
 {
+    //la primera app
     class IONetfis{
 
         //Lee datos de un archivo de texto
