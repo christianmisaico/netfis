@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data
+
 
 namespace netfis.Clases
 {
-    //la primera app
+   
     class IONetfis{
 
         //Lee datos de un archivo de texto
