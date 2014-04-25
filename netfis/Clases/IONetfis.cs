@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.IO.Compression;
 
 namespace netfis.Clases
 {
@@ -32,7 +32,7 @@ namespace netfis.Clases
         {
             try
             {
-                using (FileStream Fs = new FileStream(ruta, FileMode.OpenOrCreate, FileAccess.Write))
+                using (FileStream Fs = new FileStream(ruta, FileMode.Append, FileAccess.Write))//FileMode.Append para que escriba al final del texto
                 {
                     using (StreamWriter sw = new StreamWriter(Fs))
                     {
@@ -79,6 +79,70 @@ namespace netfis.Clases
                 System.Windows.MessageBox.Show("Error, consulte a su Administrador de Sistema");
             }
             //
+        }
+
+        //Comprimir archivo en formato gz,zip,etc
+        public void comprimir(string ruta,string nombre_comprimido_extension)
+        {
+            try
+            {
+            using (FileStream fs = new FileStream(ruta, FileMode.Open, FileAccess.Read))//crea un stream para abrir el archivo en modo lectura
+            {
+                using (FileStream fsc = new FileStream(nombre_comprimido_extension, FileMode.OpenOrCreate, FileAccess.Write))//crea un stream para crear el archivo y escribir sobre el
+                {
+                    using (GZipStream gz = new GZipStream(fsc, CompressionMode.Compress))
+                    {
+
+                        int i = fs.ReadByte();
+                        while (i != -1)
+                        {
+                            gz.WriteByte((byte)i);
+                            i = fs.ReadByte();
+                        }
+                        gz.Close();
+                    }
+                    fsc.Close();
+                }
+                fs.Close();
+            }
+            }
+            catch (Exception excepccion)
+            {
+
+                System.Windows.MessageBox.Show("Error, consulte a su Administrador de Sistema");
+            }
+        }
+        //Descomprimir archivo gz,zip,etc
+        public void descomprimir(string ruta,string archivo_descomprimido)
+        {
+
+            try{
+
+            using (FileStream fs = new FileStream(ruta, FileMode.Open, FileAccess.Read))
+            {
+                using (FileStream fsd = new FileStream(archivo_descomprimido, FileMode.OpenOrCreate, FileAccess.Write))
+                {
+                    using (GZipStream gs = new GZipStream(fs, CompressionMode.Decompress))
+                    {
+                        int i = gs.ReadByte();
+                        while (i != -1)
+                        {
+                            fsd.WriteByte((byte)i);
+                            i = gs.ReadByte();
+
+                        }
+                        gs.Close();
+                    }
+                    fsd.Close();
+                }
+                fs.Close();
+            }
+            }
+            catch (Exception excepccion)
+            {
+
+                System.Windows.MessageBox.Show("Error, consulte a su Administrador de Sistema");
+            }
         }
 
     }
