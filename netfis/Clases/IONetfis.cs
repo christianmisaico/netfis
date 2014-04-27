@@ -4,7 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using System.IO.Compression;
+using System.Security.Cryptography;
+using System.IO.MemoryMappedFiles;
+using System.IO.IsolatedStorage;
 
 namespace netfis.Clases
 {
@@ -54,7 +58,7 @@ namespace netfis.Clases
         }
 
         //Lee archivos en memoria byte por byte
-        public void Memoria(string ruta)
+        public void Leer_en_memoria(string ruta)
         {
             //
             try
@@ -145,5 +149,121 @@ namespace netfis.Clases
             }
         }
 
+        public byte[] bkey; 
+        public byte[] bIV;
+        public void encriptar(string archivo_origen, string archivo_encriptado)
+        {
+            try
+            {
+                TripleDESCryptoServiceProvider Algoritmo = new TripleDESCryptoServiceProvider();
+                Algoritmo.GenerateKey();
+                Algoritmo.GenerateIV();
+                bkey = Algoritmo.Key;
+                bIV = Algoritmo.IV;
+                ICryptoTransform Transformacion = Algoritmo.CreateEncryptor();
+                using (FileStream FsDestino = new FileStream(archivo_encriptado, FileMode.OpenOrCreate, FileAccess.Write))
+                {
+                    using (CryptoStream Cs = new CryptoStream(FsDestino, Transformacion, CryptoStreamMode.Write))
+                    {
+                        string Contenido = File.ReadAllText(archivo_origen);
+                        using (StreamWriter Sw = new StreamWriter(Cs))
+                        {
+                            Sw.Write(Contenido);
+                            Sw.Close();
+                        }
+                    }
+                    FsDestino.Close();
+                }
+
+            }
+            catch (Exception exc)
+            {
+                System.Windows.MessageBox.Show("Error, consulte a su Administrador de Sistema");
+            }
+        }
+        // desencriptas el archivo ,ojo solo habiendo encriptado el archivo(igual se consistenciará en el evento)
+        public void Desencriptar(string archivo_origen, string archivo_desencriptado)
+        {
+
+            try
+            {
+
+                TripleDESCryptoServiceProvider Algoritmo = new TripleDESCryptoServiceProvider();
+                Algoritmo.Key = bkey;
+                Algoritmo.IV = bIV;
+                ICryptoTransform Transformacion = Algoritmo.CreateDecryptor();
+                using (FileStream FsOrigen = new FileStream(archivo_origen, FileMode.Open, FileAccess.Read))
+                {
+                    using (CryptoStream Cs = new CryptoStream(FsOrigen, Transformacion, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader Sr = new StreamReader(Cs))
+                        {
+                            string Cadena = Sr.ReadToEnd();
+                            File.WriteAllText(archivo_desencriptado, Cadena);
+                        }
+                    }
+                    FsOrigen.Close();
+                }
+
+            }
+            catch (Exception excp)
+            {
+                
+                System.Windows.MessageBox.Show("Error, consulte a su Administrador de Sistema");
+
+            }
+        }
+
+        //Escribes dentro de un archivo especificando de donde a donde en el texto
+        public void escribir_en_memoria(string ruta,string texto,int ini_texto,int tamaño_texto)
+        {
+            try
+            {
+                using (MemoryMappedFile mmf = MemoryMappedFile.CreateFromFile(ruta, FileMode.OpenOrCreate, "Demo", 100))
+                {
+                    using (MemoryMappedViewStream vista = mmf.CreateViewStream(ini_texto,tamaño_texto))
+                    {
+                        byte[] bTexto = System.Text.Encoding.UTF7.GetBytes(texto);
+
+                        vista.Write(bTexto, 0, bTexto.Length);
+                    }
+                }
+            }
+            catch (Exception exp)
+            {
+                System.Windows.MessageBox.Show("Error, consulte a su Administrador de Sistema");
+            }
+        }
+        //Crear un directorio en un almacenamiento aislado y dentro de el crea un archivo y ademas se escribe texto dentro del archivo
+        public void directorio_en_almacenamiento_aislado(string carpeta, string archivo,string texto)
+        {
+            try
+            {
+                IsolatedStorageFile Almacen = IsolatedStorageFile.GetUserStoreForApplication();
+
+                Almacen.CreateDirectory(carpeta);
+
+                using (IsolatedStorageFileStream Fs = new IsolatedStorageFileStream(archivo, FileMode.OpenOrCreate, Almacen))
+                {
+                    using (StreamWriter Sw = new StreamWriter(Fs))
+                    {
+                        Sw.WriteLine(texto);
+                        Sw.Close();
+                    }
+                    /*
+                     Otra forma de escribir la cadena (byte por byte)
+                    string C = texto_que_quieres_escribir;
+                    byte[] b = System.Text.Encoding.UTF8.GetBytes(C);
+                    Fs.Write(b, 0, b.Length);*/
+                    Fs.Close();
+                }
+
+
+            }
+            catch (Exception Exp)
+            {
+                System.Windows.MessageBox.Show("Error, consulte a su Administrador de Sistema");
+            }
+        }
     }
 }
