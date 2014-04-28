@@ -268,6 +268,5 @@ namespace netfis.Clases
                 System.Windows.MessageBox.Show("Error, consulte a su Administrador de Sistema");
             }
         }
->>>>>>> f1a8dc961a62667d990cf2768ffcdbf994e944e6
     }
 }
